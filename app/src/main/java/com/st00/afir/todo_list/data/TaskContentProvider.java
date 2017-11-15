@@ -105,6 +105,22 @@ public class TaskContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case TASK_WITH_ID:
+                // Uri: content://<Authority>/<Path> (0) /# (1) ...
+                String id = uri.getPathSegments().get(1);
+
+                // SELECT A FROM B WHERE mSelection = mSelectionArgs
+                String mSelection = "_id=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                returnedCursor = database.query(TaskContract.TaskEntry.TABLE_NAME,
+                        projection,
+                        mSelection,
+                        mSelectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: "+uri);
         }
