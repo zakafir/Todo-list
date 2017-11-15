@@ -134,7 +134,32 @@ public class TaskContentProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase database = taskDbHelper.getReadableDatabase();
+
+        int match = sUriMatcher.match(uri);
+
+        int rowsDeleted;
+
+        switch (match){
+            case TASK_WITH_ID:
+                // Uri: content://<Authority>/<Path> (0) /# (1) ...
+                String id = uri.getPathSegments().get(1);
+
+                // SELECT A FROM B WHERE mSelection = mSelectionArgs
+                String mSelection = "_id=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                rowsDeleted = database.delete(TaskContract.TaskEntry.TABLE_NAME,
+                        mSelection,
+                        mSelectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: "+uri);
+        }
+        if(rowsDeleted != 0){
+            getContext().getContentResolver().notifyChange(uri,null);
+        }
+        return rowsDeleted;
     }
 
 
