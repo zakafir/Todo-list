@@ -17,9 +17,12 @@
 package com.st00.afir.todo_list.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
@@ -56,7 +59,29 @@ public class TaskContentProvider extends ContentProvider {
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        final SQLiteDatabase database = taskDbHelper.getWritableDatabase();
+
+        //get 100 or 101 (for inserting, we don't have to know wich id we're handling) --> just 100 "TASKS"
+        int match = sUriMatcher.match(uri);
+
+        Uri returnedUri;
+
+        switch (match){
+            case TASKS:
+                long id = database.insert(TaskContract.TaskEntry.TABLE_NAME,null,values);
+                if(id > 0){
+                    returnedUri = ContentUris.withAppendedId(TaskContract.TaskEntry.CONTENT_URI,id);
+                }else {
+                    throw new SQLException("Failed to insert row : "+uri);
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: "+uri);
+        }
+        //notify the resolver that a change has occurred (to update the UI)
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return returnedUri;
     }
 
 
